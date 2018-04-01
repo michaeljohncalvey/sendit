@@ -4,7 +4,7 @@ var hannafords = require('../data/hannafords.js').hannafords;
 var subway = require('../data/subway.js').subway;
 var MongoClient = require('mongodb').MongoClient;
 var db;
-var sess;
+var sess = { loggedIn: true, id: 0 };
 
 MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
   if(err) throw err;
@@ -15,12 +15,10 @@ MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
 router.get('/', function(req, res, next) {
   var locations = [ hannafords, subway ];
   console.log(locations.length);
-  sess = req.session;
   res.render('index', { locations: locations, sess: sess });
 });
 
 router.get('/:location', function(req, res) {
-  sess = req.session;
   var location;
   if(req.params.location == "hannafords") {
     location = hannafords;
@@ -31,7 +29,6 @@ router.get('/:location', function(req, res) {
 });
 
 router.get('/cart', function(req, res, next) {
-  sess = req.session;
   res.render('cart', { sess: sess });
 });
 

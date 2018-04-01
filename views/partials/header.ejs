@@ -5,11 +5,18 @@
   </div>
   <div id="right">
     <div id="right_buttons">
-      <form action="/cart">
-        <input class="button" type="submit" value="Cart"></form>
       <% if(!sess.loggedIn) { %>
-
-      <form action="/"
+      <form action="/users/login">
+        <input class="nav_button" type="submit" value="Log in"></form>
+      <form action="/users/create" method="get">
+        <input class="nav_button" type="submit" value="Sign up"></form>
+      <% } else { %>
+      <form action="/cart">
+        <input class="nav_button" type="submit" value="Cart"></form>
+      <form action="/:"<%= sess.id %>>
+        <input class="nav_button" type="submit" value="View Account"></form>
+      <form action="/logout" method="post">
+        <input class="nav_button" type="submit" value="Logout"></form>
       <% } %>
     </div>
   </div>
