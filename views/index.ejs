@@ -1,11 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= title %></title>
+    <title>Sendit</title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <h1>Menu</h1>
+    <h3>Please select a location</h3>
+    <article class="locations">
+      <% for(var loc in locations) { %>
+      <% if(locations.hasOwnProperty(loc)) { %>
+      <div id="location">
+        <a href="/<%= locations[loc].info.tag %>" >
+          <%= locations[loc].info.name %>
+        </a>
+      </div>
+      <% } %>
+      <% } %>
+    </article>
+
   </body>
 </html>

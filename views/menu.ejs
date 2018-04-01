@@ -5,6 +5,16 @@
   </head>
 
   <body>
-  menu is here boi
+    <%= location.info.name %> menu:
+    <% console.log(location.menu); %>
+    <% for(var category in location.menu) { %>
+    <% if(location.menu.hasOwnProperty(category)) { %>
+      <div id="category">
+        <% var loc = location.menu[category]; %>
+        <% for(var item in loc) { %>
+        <%= loc[item].name %>: $<%= loc[item].price %> 
+        <% } %>
+      </div>
+    <% }} %>
   </body>
 </html>
