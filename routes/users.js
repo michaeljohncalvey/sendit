@@ -9,6 +9,11 @@ MongoClient.connect('mongodb://localhost:27017/', function(err, client) {
   db = client.db('USER_DATA');
 })
 
+router.post('/login', function(req, res, next) {
+  sess = req.session;
+  
+});
+
 router.get('/create', function(req, res, next) {
   sess = req.session;
   res.render('users/create', { sess: sess });
