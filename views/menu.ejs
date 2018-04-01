@@ -5,6 +5,7 @@
   </head>
 
   <body>
+    <% include partials/header.ejs %>
     <%= location.info.name %> menu:
     <% console.log(location.menu); %>
     <% for(var category in location.menu) { %>
