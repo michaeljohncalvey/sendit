@@ -14,8 +14,8 @@ var http = require('http');
 
 var MongoClient = require('mongodb').MongoClient
 
-MongoClient.connect('mongodb://localhost:27017/', function (err, db) {
-  if (err) throw err;
+MongoClient.connect('mongodb://localhost:27017/USER_DATA', function (err, db) {
+  if (err) throw err
 })
 
 
