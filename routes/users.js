@@ -6,23 +6,41 @@ var session;
 var passport = require('passport');
 var sha3_512 = require('js-sha3').sha3_512;
 
+// util functions
+var retrieveUser = require('./utils.js').retrieveUser;
+var getSession = require('./utils.js').getSession;
+var createSession = require('./utils.js').createSession;
+var parseCookies = require('./utils.js').parseCookies;
+
 MongoClient.connect('mongodb://localhost:27017/', function(err, client) {
   if(err) throw err;
   db = client.db('USER_DATA');
 })
 
 router.get('/login', function(req, res, next) {
-  getSession(req);
-  res.render('users/login', { sesssion: session });
+  // check session
+  session = getSession(req);
+  if(!session) {
+    session = createSession( { _id: nextId() }, false);
+    res.cookie('session', session);
+  }
+
+  res.render('users/login', { session: session });
 });
 
 router.post('/login', function(req, res, next) {
-  getSession(req);
+  // check existing session
+  session = getSession(req);
+  if(!session) {
+    session = createSession( { _id: nextId() }, false);
+    res.cookie('session', session);
+  }
+
   //TODO: login code here
   if(authenticate(req, res)) {
     req.flash('Logged in');
     res.redirect('/');
-  } else res.redirect('/login') {
+  } else {
     req.flash('incorrect email or password, please try again');
     res.redirect('/users/login');
   }
@@ -34,25 +52,37 @@ router.post('/logout', function(req, res, next) {
 });
 
 router.get('/create', function(req, res, next) {
-  res.render('users/create', { sess: sess });
+  session = getSession(req);
+  if(!session) {
+    session = createSession( { _id: nextId() }, false);
+    res.cookie('session', session);
+  }
+
+  res.render('users/create', { session: session });
 });
 
 router.post('/create', function(req, res, next) {
-  //sess = req.session;
   // TODO: Check if email is used, enforce password security measures
-  var newUser = {email: req.body.email, phash: sha3_512(req.body.password)};
-  db.collection("users").insertOne(newUser);)
+  // check session
+  session = getSession(req);
+  if(!session) {
+    session = createSession( { _id: nextId() }, false);
+    res.cookie('session', session);
+  }
+  
+  var newUser = {_id: session._id, email: req.body.email, phash: sha3_512(req.body.password)};
+  db.collection("users").update(newUser);
   res.redirect('/created');
 });
 
 router.get('/created', function(req, res, next) {
-  getSession();
-  res.render('users/' + , { session: session });
+  session = getSession(req);
+  res.render('users/' + session.users._id, { session: session });
 });
 
 /* GET users listing. */
 router.get('/:id', function(req, res, next) {
-  getSession(req);
+  session = getSession(req);
   res.render('users/show', { session: session });
 });
 
@@ -62,7 +92,7 @@ router.get('/:id', function(req, res, next) {
 // perform authentication for login
 // return true if successful
 function authenticate(req, res) {
-  var foundUser = retrieveUser(req.body.email);
+  var foundUser = retrieveUser(db, req.body.email);
 
   if(!foundUser) return false;
   console.log('user found');
@@ -76,37 +106,13 @@ function authenticate(req, res) {
   } else return true;
 }
 
-// retrieve user object
-function retrieveUser(email) {
-  return db.collection('users').find( { email: email } );
-}
-
 // logout
 function logout(req, res) {
-  res.writeHead('session', createSession({}, false);
+  res.writeHead('session', createSession({}, false));
 }
 
-// get session from cookie
-function getSession(req) {
-  session = parseCookies(req).session;
-}
-
-// session object creator
-function createSession(newUser, newLoggedIn) {
-  return { loggedIn: newLoggedIn, user: newUser }
-}
-
-// cookie parsing
-function parseCookies(req) {
-  var list = {},
-    rc = req.headers.cookie;
-
-  rc && rc.split(';').forEach(function( cookie ) {
-    var parts = cookie.split('=');
-    list[parts.shift().trim()] = decodeURI(parts.join('='));
-  });
-
-  return list;
+function nextId() {
+  return db.collection('users').find().sort({_id:-1}).limit(1)[0];
 }
 
 module.exports = router;

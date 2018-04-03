@@ -6,7 +6,7 @@
   </div>
   <div id="right">
     <div id="right_buttons">
-      <% if(!sess.loggedIn) { %>
+      <% if(!session.loggedIn) { %>
       <form action="/users/login">
         <input class="nav_button" type="submit" value="Log in"></form>
       <form action="/users/create" method="get">
@@ -14,7 +14,7 @@
       <% } else { %>
       <form action="/cart">
         <input class="nav_button" type="submit" value="Cart"></form>
-      <form action="/:"<%= sess.id %> >
+      <form action="/:"<%= sesssion.user.id %> >
         <input class="nav_button" type="submit" value="View Account"></form>
       <form action="/users/logout" method="post">
         <input class="nav_button" type="submit" value="Logout"></form>
