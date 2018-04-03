@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 var hannafords = require('../data/hannafords.js').hannafords;
 var subway = require('../data/subway.js').subway;
+var mcdonalds = require('../data/mcdonalds.js').mcdonalds;
 var MongoClient = require('mongodb').MongoClient;
 var db;
 var session;
-var passport = require('passport');
+var Cookies = require('cookies');
+var cookies;
 
 // util functions
 var retrieveUser = require('./utils.js').retrieveUser;
@@ -21,25 +23,31 @@ MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
 /* GET home page. */
 router.get('/', function(req, res, next) {
   // check session
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  var sessTemp = decodeURIComponent(cookies.get('session'));
+  while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
+    sessTemp = sessTemp.substr(1);
+  }
+  console.log(sessTemp);
+  if(sessTemp) {
+    session = JSON.parse(sessTemp);
+  }
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    console.log("session id: " + session.user._id);
-    console.log('Session: ' + JSON.stringify(session));
-    res.cookie('session', JSON.stringify(session));
+    console.log("Pre cookie: " + session);
+    cookies.set('session', JSON.stringify(session));
   }
-
-  var locations = [ hannafords, subway ];
-  console.log(locations.length)
+  var locations = [ hannafords, subway, mcdonalds];
   res.render('index', { locations: locations, session: session });
 });
 
 router.get('/:location', function(req, res) {
   //check session
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    cookies.set('session', JSON.stringify(session));
   }
 
   var location;
@@ -47,23 +55,27 @@ router.get('/:location', function(req, res) {
     location = hannafords;
   } else if(req.params.location == "subway") {
     location = subway;
+  } else if(req.params.location == "mcdonalds") {
+    location = mcdonalds;
   }
   res.render('menu', { location: location, session: session });
 });
 
 router.get('/cart', function(req, res, next) {
   // check session
-  session = getSession(req);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    cookie.set('session', JSON.stringify(session));
   }
 
   res.render('cart', { session: session });
 });
 
 function nextId() {
-  return db.collection('users').find().sort({_id:-1}).limit(1)[0];
+  var next = db.collection('users').find().sort({_id:-1}).limit(1)[0];
+  if(next == undefined) return 0;
+  else return next;
 }
 
 module.exports = router;

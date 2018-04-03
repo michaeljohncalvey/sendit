@@ -14,7 +14,7 @@
       <% } else { %>
       <form action="/cart">
         <input class="nav_button" type="submit" value="Cart"></form>
-      <form action="/:"<%= sesssion.user.id %> >
+      <form action="/:"<%= session.user._id %> >
         <input class="nav_button" type="submit" value="View Account"></form>
       <form action="/users/logout" method="post">
         <input class="nav_button" type="submit" value="Logout"></form>

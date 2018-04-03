@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="/stylesheets/style.css">
     <title>New User</title>
   </head>
   <body>
     <% include ../partials/header.ejs %>
-    Create a new user
+    <form class="container_center" action="/users/create" method="post">
+      <div id="container">
+        <label>Email:</label>
+        <input type="text" name="username"/><br/>
+        <label>Password:</label>
+        <input type="text" name="password"/><br/>
+        <input type="submit" value="Submit"/>
+      </div>
+    </form>
   </body>
 </html>

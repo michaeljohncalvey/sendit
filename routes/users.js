@@ -3,8 +3,9 @@ var router = express.Router();
 var MongoClient = require('mongodb').MongoClient;
 var db;
 var session;
-var passport = require('passport');
 var sha3_512 = require('js-sha3').sha3_512;
+var Cookies = require('cookies');
+var cookies;
 
 // util functions
 var retrieveUser = require('./utils.js').retrieveUser;
@@ -19,10 +20,11 @@ MongoClient.connect('mongodb://localhost:27017/', function(err, client) {
 
 router.get('/login', function(req, res, next) {
   // check session
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    cookies.set('session', JSON.stringify(session));
   }
 
   res.render('users/login', { session: session });
@@ -30,18 +32,17 @@ router.get('/login', function(req, res, next) {
 
 router.post('/login', function(req, res, next) {
   // check existing session
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    cookies.set('session', JSON.stringify(session));
   }
 
   //TODO: login code here
   if(authenticate(req, res)) {
-    req.flash('Logged in');
     res.redirect('/');
   } else {
-    req.flash('incorrect email or password, please try again');
     res.redirect('/users/login');
   }
 });
@@ -52,10 +53,12 @@ router.post('/logout', function(req, res, next) {
 });
 
 router.get('/create', function(req, res, next) {
-  session = getSession(req);
+  // check session
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    cookies.set('session', JSON.stringify(session));
   }
 
   res.render('users/create', { session: session });
@@ -64,25 +67,39 @@ router.get('/create', function(req, res, next) {
 router.post('/create', function(req, res, next) {
   // TODO: Check if email is used, enforce password security measures
   // check session
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
   if(!session) {
-    session = createSession( { _id: nextId() }, false);
-    res.cookie('session', session);
+    session = createSession( { _id: 0 }, false);
+    cookies.set('session', JSON.stringify(session));
   }
-  
-  var newUser = {_id: session._id, email: req.body.email, phash: sha3_512(req.body.password)};
+ 
+  console.log("user " + session);
+  var newUser = {_id: session.user._id, email: req.body.email, phash: sha3_512(req.body.password)};
+  console.log("New User id: " + newUser);
   db.collection("users").update(newUser);
-  res.redirect('/created');
+  session = createSession(newUser, true);
+  cookies.set('session', JSON.stringify(session));
+  res.redirect('/');
 });
 
 router.get('/created', function(req, res, next) {
-  session = getSession(req);
-  res.render('users/' + session.users._id, { session: session });
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
+  if(!session) {
+    session = createSession( { _id: nextId() }, false );
+    cookies.set('session', JSON.stringify(session));
+    res.redirect('/');
+  }
+  
+  res.render('users/' + session.user._id, { session: session });
 });
 
 /* GET users listing. */
 router.get('/:id', function(req, res, next) {
-  session = getSession(req);
+  cookies = new Cookies(req, res);
+  session = JSON.parse(decodeURIComponent(cookies.get('session')));
+  if(!session) res.redirect('/login');
   res.render('users/show', { session: session });
 });
 
@@ -97,22 +114,26 @@ function authenticate(req, res) {
   if(!foundUser) return false;
   console.log('user found');
   
-  if(!sha3_512(req.body.password) === foundUser.password) {
-    console.log('Password authenticated');
-  
-    console.log('saving cookie');
-    res.writeHead('session', createSession(user, true));
-    return false;
-  } else return true;
+  if(!sha3_512(req.body.password) === foundUser.password) return false;
+  else {
+    cookies = new Cookies(req, res);
+    session = createSession({_id: foundUser._id, email: foundUser.email, phash: foundUser.phash}, true);
+    console.log("Session ATM: " + JSON.stringify(session));
+    cookies.set('session', JSON.stringify(session));
+    return true
+  };
 }
 
 // logout
 function logout(req, res) {
-  res.writeHead('session', createSession({}, false));
+  cookies = new Cookies(req, res);
+  cookies.set('session', JSON.stringify(createSession( { _id: nextId() }, false)));
 }
 
 function nextId() {
-  return db.collection('users').find().sort({_id:-1}).limit(1)[0];
+  var next = db.collection('users').find().sort({_id:-1}).limit(1)[0];
+  if(next == undefined) return 0;
+  else return next;
 }
 
 module.exports = router;
