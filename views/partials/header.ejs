@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <article id="navbar">
   <div id="left">
-    <a href="/">Home</a>
+    <form action="/">
+      <input class="nav_button" type="submit" value="Home"></form>
   </div>
   <div id="right">
     <div id="right_buttons">
@@ -13,9 +14,9 @@
       <% } else { %>
       <form action="/cart">
         <input class="nav_button" type="submit" value="Cart"></form>
-      <form action="/:"<%= sess.id %>>
+      <form action="/:"<%= sess.id %> >
         <input class="nav_button" type="submit" value="View Account"></form>
-      <form action="/logout" method="post">
+      <form action="/users/logout" method="post">
         <input class="nav_button" type="submit" value="Logout"></form>
       <% } %>
     </div>

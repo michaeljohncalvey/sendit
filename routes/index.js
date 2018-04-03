@@ -4,7 +4,8 @@ var hannafords = require('../data/hannafords.js').hannafords;
 var subway = require('../data/subway.js').subway;
 var MongoClient = require('mongodb').MongoClient;
 var db;
-var sess = { loggedIn: true, id: 0 };
+var sess = { loggedIn: false };
+var passport = require('passport');
 
 MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
   if(err) throw err;
