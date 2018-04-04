@@ -25,7 +25,6 @@ router.get('/', function(req, res, next) {
   // check session
   cookies = new Cookies(req, res);
   var sessTemp = cookies.get('session');
-  console.log("Temp sess: " + sessTemp);
   if(sessTemp != undefined) {
     sessTemp = decodeURIComponent(sessTemp);
     while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
@@ -35,7 +34,6 @@ router.get('/', function(req, res, next) {
   }
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    console.log("Pre cookie: " + session);
     cookies.set('session', JSON.stringify(session));
   }
   var locations = [ hannafords, subway, mcdonalds];
@@ -45,7 +43,14 @@ router.get('/', function(req, res, next) {
 router.get('/:location', function(req, res) {
   //check session
   cookies = new Cookies(req, res);
-  session = JSON.parse(decodeURIComponent(cookies.get('session')));
+  var sessTemp = cookies.get('session');
+  if(sessTemp != undefined) {
+    sessTemp = decodeURIComponent(sessTemp);
+    while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
+      sessTemp = sessTemp.substr(1);
+    }
+    session = JSON.parse(sessTemp);
+  }
   if(!session) {
     session = createSession( { _id: nextId() }, false);
     cookies.set('session', JSON.stringify(session));
@@ -64,11 +69,21 @@ router.get('/:location', function(req, res) {
 
 router.get('/cart', function(req, res, next) {
   // check session
-  session = JSON.parse(decodeURIComponent(cookies.get('session')));
+  console.log("Or here?");
+  cookies = new Cookies(req, res);
+  var sessTemp = cookies.get('session');
+  if(sessTemp != undefined) {
+    sessTemp = decodeURIComponent(sessTemp);
+    while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
+      sessTemp = sessTemp.substr(1);
+    }
+    session = JSON.parse(sessTemp);
+  }
   if(!session) {
     session = createSession( { _id: nextId() }, false);
-    cookie.set('session', JSON.stringify(session));
+    cookies.set('session', JSON.stringify(session));
   }
+  console.log("Hereererere");
 
   res.render('cart', { session: session });
 });

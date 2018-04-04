@@ -21,7 +21,14 @@ MongoClient.connect('mongodb://localhost:27017/', function(err, client) {
 router.get('/login', function(req, res, next) {
   // check session
   cookies = new Cookies(req, res);
-  session = JSON.parse(decodeURIComponent(cookies.get('session')));
+  var sessTemp = cookies.get('session');
+  if(sessTemp != undefined) {
+    sessTemp = decodeURIComponent(sessTemp);
+    while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
+      sessTemp = sessTemp.substr(1);
+    }
+    session = JSON.parse(sessTemp);
+  }
   if(!session) {
     session = createSession( { _id: nextId() }, false);
     cookies.set('session', JSON.stringify(session));
