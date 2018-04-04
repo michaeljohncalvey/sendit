@@ -24,12 +24,13 @@ MongoClient.connect('mongodb://localhost:27017/', function (err, client) {
 router.get('/', function(req, res, next) {
   // check session
   cookies = new Cookies(req, res);
-  var sessTemp = decodeURIComponent(cookies.get('session'));
-  while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
-    sessTemp = sessTemp.substr(1);
-  }
-  console.log(sessTemp);
-  if(sessTemp) {
+  var sessTemp = cookies.get('session');
+  console.log("Temp sess: " + sessTemp);
+  if(sessTemp != undefined) {
+    sessTemp = decodeURIComponent(sessTemp);
+    while(sessTemp.charAt(0) === "j" || sessTemp.charAt(0) === ":") {
+      sessTemp = sessTemp.substr(1);
+    }
     session = JSON.parse(sessTemp);
   }
   if(!session) {
